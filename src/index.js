@@ -11,6 +11,17 @@ const whoami = async (client) => {
     );
 };
 
+const print_bridges = (config) => {
+    for (bridge of config.bridges) {
+        const bridge_pair_string = bridge.pairs
+            .map((e) => e.join('>'))
+            .join(', ');
+        console.log(
+            `zulip-bridge: Creating '${bridge.name}' between ${bridge_pair_string}.`
+        );
+    }
+};
+
 const watch = async (client) => {
     const event_handler = get_handler(client, clients);
     client.callOnEachEvent(event_handler, ['message']);
@@ -23,6 +34,7 @@ const init = async () => {
         clients.push(client);
     }
     console.log('zulip-bridge: Ready.');
+    print_bridges(config);
     for (const client of clients) {
         whoami(client);
         watch(client);
