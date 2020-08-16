@@ -18,15 +18,15 @@ const watch = async (client) => {
 
 const init = async () => {
     for (const server of config.servers) {
-        const client = Zulip(server);
+        const client = await Zulip(server);
+        client.config.name = server.name;
         clients.push(client);
     }
-    clients = await Promise.all(clients);
+    console.log('zulip-bridge: Ready.');
     for (const client of clients) {
         whoami(client);
         watch(client);
     }
-    console.log('zulip-bridge: Ready');
 };
 
 init();
