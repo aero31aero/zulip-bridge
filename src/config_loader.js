@@ -1,5 +1,11 @@
 const load_config = () => {
-    let config = {};
+    let config = {
+        servers: {},
+        bridges: [],
+        opts: {
+            say_hello: false,
+        },
+    };
     let user_config;
     try {
         user_config = require('../config');

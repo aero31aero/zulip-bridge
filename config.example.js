@@ -34,4 +34,7 @@ const coffee_bridge = {
 module.exports = {
     servers: { czo, nightly, programmers },
     bridges: [testing_bridge, coffee_bridge],
+    opts: {
+        say_hello: true,
+    },
 };

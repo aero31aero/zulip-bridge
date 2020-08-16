@@ -22,6 +22,30 @@ const print_bridges = (config) => {
     }
 };
 
+const say_hello = (config, clients) => {
+    if (!config.opts.say_hello) {
+        return;
+    }
+    for (bridge of config.bridges) {
+        let content =
+            'Hey! The following places are now connected to each other:\n';
+        for (pair of bridge.pairs) {
+            const client = clients.find((c) => c.config.name === pair[0]);
+            content += `- [${pair[0]} > ${pair[1]}](${client.config.realm}/#narrow/stream/${pair[1]})\n`;
+        }
+        for (pair of bridge.pairs) {
+            const client = clients.find((c) => c.config.name === pair[0]);
+            client.messages
+                .send({
+                    type: 'stream',
+                    to: pair[1],
+                    topic: 'hello',
+                    content,
+                });
+        }
+    }
+};
+
 const watch = async (client) => {
     const event_handler = get_handler(client, clients);
     client.callOnEachEvent(event_handler, ['message']);
@@ -35,6 +59,7 @@ const init = async () => {
     }
     console.log('zulip-bridge: Ready.');
     print_bridges(config);
+    say_hello(config, clients);
     for (const client of clients) {
         whoami(client);
         watch(client);
