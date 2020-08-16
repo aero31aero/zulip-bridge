@@ -86,6 +86,39 @@ const handle_message = async (message, client, clients) => {
         });
 };
 
+const handle_edit = async (event, client) => {
+    const messages = await client.messages.retrieve({
+        anchor: event.message_id,
+        num_before: 4,
+        num_after: 4,
+    });
+    const message = messages.messages.find((m) => m.id === event.message_id);
+    if (!message) {
+        return;
+    }
+    const recipients = get_recipients(message, client);
+    if (!recipients) {
+        return;
+    }
+    let content = 'Hey! I just noticed you edited a message in a bridged';
+    content += ' stream. I cannot mirror message edits and reactions.';
+    content += ' If needed, please send the edits you made as a';
+    content += ' new message instead. :smile:';
+    client.messages.send({
+        type: 'private',
+        to: [event.user_id],
+        content,
+    });
+    client.reactions.remove({
+        message_id: event.message_id,
+        emoji_name: 'check',
+    });
+    client.reactions.add({
+        message_id: event.message_id,
+        emoji_name: 'times_up',
+    });
+};
+
 module.exports = (client, clients) => {
     return function (event) {
         if (event.type === 'heartbeat' || event.type === 'presence') {
@@ -96,6 +129,9 @@ module.exports = (client, clients) => {
         );
         if (event.type === 'message') {
             handle_message(event.message, client, clients);
+        }
+        if (event.type === 'update_message') {
+            handle_edit(event, client);
         }
     };
 };
