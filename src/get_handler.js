@@ -28,7 +28,7 @@ const get_recipients = (message, client) => {
     return recipients;
 };
 
-const handle_message = (message, client, clients) => {
+const handle_message = async (message, client, clients) => {
     if (message.sender_email === client.config.username) {
         return; // Do not handle own messages
     }
@@ -44,11 +44,12 @@ const handle_message = (message, client, clients) => {
             .map((e) => e.join('>'))
             .join(', ')}`
     );
+    const messages = [];
     for (recipient of recipients) {
         const recipient_client = clients.find((c) => {
             return c.config.name === recipient[0];
         });
-        recipient_client.messages
+        const new_message_promise = recipient_client.messages
             .send({
                 type: 'stream',
                 to: recipient[1],
@@ -62,10 +63,27 @@ const handle_message = (message, client, clients) => {
                         `zulip-bridge: Error sending message to ${recipient[0]}>${recipient[1]}.`
                     );
                     console.error(e);
+                    return Promise.reject(e);
                 }
-            })
-            .catch(console.log);
+            });
+        messages.push(new_message_promise);
     }
+    Promise.all(messages)
+        .then((e) => {
+            // All messages were sent successfully.
+            client.reactions.add({
+                message_id: message.id,
+                emoji_name: 'check',
+            });
+        })
+        .catch((e) => {
+            // Some messages couldn't be sent; Print the error and react to convey something went wrong.
+            console.error(e);
+            client.reactions.add({
+                message_id: message.id,
+                emoji_name: 'wrong',
+            });
+        });
 };
 
 module.exports = (client, clients) => {

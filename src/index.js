@@ -33,15 +33,19 @@ const say_hello = (config, clients) => {
             const client = clients.find((c) => c.config.name === pair[0]);
             content += `- [${pair[0]} > ${pair[1]}](${client.config.realm}/#narrow/stream/${pair[1]})\n`;
         }
+        content +=
+            "When a message has been successfully mirrored, you'll see a :check: reaction on your message.\n\n";
+        content +=
+            'Please keep in mind that we cannot mirror message edits and reactions; please send a new message';
+        content += ' instead of editing an existing one.';
         for (pair of bridge.pairs) {
             const client = clients.find((c) => c.config.name === pair[0]);
-            client.messages
-                .send({
-                    type: 'stream',
-                    to: pair[1],
-                    topic: 'hello',
-                    content,
-                });
+            client.messages.send({
+                type: 'stream',
+                to: pair[1],
+                topic: 'hello',
+                content,
+            });
         }
     }
 };
